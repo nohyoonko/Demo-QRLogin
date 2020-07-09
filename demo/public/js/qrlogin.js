@@ -1,4 +1,4 @@
-/* QR Code에 담을 랜덤한 수 및 QR Code 생성 */
+/* QR Code에 담을 random number 및 QR Code 생성 */
 var rand = "";
 for (var i = 0; i < 5; i++) {
     rand += (Math.floor((Math.random() * 10)));
@@ -12,8 +12,6 @@ var qrcode = new QRCode(document.getElementById("qrcode"), {
     colorLight: "#ffffff",
     correctLevel: QRCode.CorrectLevel.H
 });
-
-document.qr_form.qr_num.value = rand;
 
 $("#qrcode > img").css({"margin": "auto"});
 
@@ -60,11 +58,13 @@ function layer_popup(el) {
 
 }
 
-$('#qrform').on('submit', function(e){
-    $.post('/qr', {
-        qrNum: rand
+var $qrnum = $('#qr_num')
+
+$('#qr_form').on('submit', function(e){
+    $.post('/qrcode', {
+        qrnum: $qrnum.val()
     });
-    $chatmsg.val("");
-    $chatmsg.focus();
+    $qrnum.val("");
+    $qrnum.focus();
     return false;
 });
