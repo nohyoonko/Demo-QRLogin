@@ -16,43 +16,31 @@
         <!-- Login Area -->
         <div class="login_area">
             <h1 class="logo"><span class="strong">Any</span>PIN</h1>
-            <form ng-keydown="keyEvent($event)">
-                <fieldset>
-                    <legend>로그인</legend>
-                    <div class="box_login">
-                        <div class="inner_login">
-                            <a href="#layer" class="btn-example">인증서 로그인</a>
-                        </div>
-                    </div>
-                </fieldset>
-            </form>
+            <div class="box_login">
+                <div class="inner_login">
+                    <!-- Trigger/Open The Modal -->
+                    <button type="button" id="myBtn" class="btn_login">QR 인증 로그인</button>
+                </div>
+            </div>
+            <!-- The Modal -->
+            <div id="myModal" class="modal">
+                <!-- Modal content >> width, height: 100% 인데 overflow 됨-->
+                <div class="modal-content">
+                    <p><span class="close">&times;</span></p>
+                    <h2 class="modal-name">QR Code</h2>
+                    <p class="modal-sub">QR코드를 모바일에서 스캔 후 인증을 진행해주세요.</p>
+                    <div id="qrcode"></div>
+                    <form action="./qrcode" id="qr_form" method="POST">
+                        <!--<input type="hidden" name="qr_num" value="">-->
+                        <button type="submit" class="qr_login">확인</button>
+                    </form>
+                </div>
+            </div>
             <p class="copyright">ⓒ HANCOM WITH Inc. All rights Reserved</p>
         </div>
         <!-- // Login Area -->
-        <!-- QR Code Area -->
-        <div class="dim-layer">
-            <div class="dimBg"></div>
-            <div id="layer" class="pop-layer">
-                <div class="pop-container">
-                    <div class="pop-conts">
-                        <div class="btn-r">
-                            <a href="#" class="btn-layerClose">Close</a>
-                        </div>
-                        <!--content //-->
-                        <p><h1>QR 코드</h1></p>
-                        <div id="qrcode"></div>
-                        <form action="/qrcode" id="qr_form" method="POST">
-                            <!--<input type="hidden" name="qr_num" value="">-->
-                            <input type="text" id="qr_num">
-                            <input type="submit" value="확인">
-                        </form>
-                        <!--// content-->
-                    </div>
-                </div>
-            </div>
-        </div>
-        <!-- // QR Code Area -->
     </div>
 </body>
 <script src="js/qrlogin.js"></script>
+
 </html>
