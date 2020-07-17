@@ -140,7 +140,8 @@ body{min-width:1280px;min-height:780px}
 .login_area .logo{line-height:0;text-align:center; color: white; font-weight: 300; font-size: 70px; line-height: normal; }
 .login_area .logo .sp{width:431px;height:59px;background-position:0 -39px}
 .login_area .logo .strong{font-weight: 700; font-size: 0.94em; }
-.login_area .box_login{height:352px;margin-top:39px;-webkit-border-radius:4px;-moz-border-radius:4px;border-radius:4px;background:#6da3d2}
+/* 데모 >> height: 352px -> 45% 수정*/
+.login_area .box_login{margin-top:39px;-webkit-border-radius:4px;-moz-border-radius:4px;border-radius:4px;background:#6da3d2}
 .login_area .inner_login{width:516px;margin:0 auto;padding:65px 0}
 .login_area .placeholder{position:relative}
 .login_area .placeholder label{position:absolute;z-index:2;top:23px;left:51px;color:#8d8d8d}
@@ -151,14 +152,10 @@ body{min-width:1280px;min-height:780px}
 .login_area .id:before{position:absolute;top:23px;left:27px;width:14px;height:17px;content:'';background-position:-181px 0}
 .login_area .pswd:before{position:absolute;top:24px;left:27px;width:12px;height:17px;content:'';background-position:-197px -1px}
 .login_area label{font-size:16px}
-.login_area input{width:435px;height:32px;margin-left:52px;font-size:16px;color:#8d8d8d;border:0}
-/* 
-데모 페이지용 수정
-  1. a 추가
-  2. 2가지 로그인으로 width 100%->49.6% 변경
-*/
-.login_area a{padding:20px 75px 20px 75px;font-size:18px;color:#fff;-webkit-border-radius:4px;-moz-border-radius:4px;border-radius:4px;background:#1261a4}
-.login_area .btn_login{-webkit-box-sizing:border-box;-moz-box-sizing:border-box;box-sizing:border-box;width:49.6%;height:60px;margin-top:19px;font-size:18px;color:#fff;-webkit-border-radius:4px;-moz-border-radius:4px;border-radius:4px;background:#1261a4}
+/* 데모 >> .login_area input 삭제 */
+/* 데모 >> margin-top:19px; 삭제 */
+.login_area .btn_login{-webkit-box-sizing:border-box;-moz-box-sizing:border-box;box-sizing:border-box;width:100%;height:60px;font-size:18px;color:#fff;-webkit-border-radius:4px;-moz-border-radius:4px;border-radius:4px;background:#1261a4}
+.login_area .qr_login{-webkit-box-sizing:border-box;-moz-box-sizing:border-box;box-sizing:border-box;width:100%;height:50px;margin-top:5%;font-size:18px;color:#fff;background:#1261a4}
 .login_area .copyright{margin-top:66px;font-size:14px;text-align:center;color:#fff}
 
 /* 공통 - 레이어 */
@@ -560,72 +557,50 @@ body.safari .table_control .btn_move.left.on .sp{vertical-align:middle}
    .dashboard .top_area .box_dashboard.info.reg_user .middle .icon {left:26px}}
 
 /* 데모 QR 로그인 */
-.pop-layer .pop-container {
-  padding: 20px 25px;
+/* The Modal (background) */
+.modal {
+    display: none; /* Hidden by default */
+    position: fixed; /* Stay in place */
+    z-index: 1; /* Sit on top */
+    left: 0;
+    top: 0;
+    width: 100%; /* Full width */
+    height: 100%; /* Full height */
+    overflow: auto; /* Enable scroll if needed */
+    background-color: rgb(0,0,0); /* Fallback color */
+    background-color: rgba(0,0,0,0.3); /* Black w/ opacity */
 }
-
-.pop-layer p.ctxt {
-  color: #666;
-  line-height: 25px;
+/* Modal Content/Box */
+.modal-content {
+    background-color: #fefefe;
+    margin: 14% auto; /* 15% from the top and centered */
+    padding: 20px;
+    border: 1px solid #888;
+    width: 350px; /* Could be more or less, depending on screen size (original: 30%) */                          
+    height: auto;
 }
-
-.pop-layer .btn-r {
-  width: 100%;
-  margin: 10px 0 20px;
-  text-align: right;
+.modal-name {
+  text-align: center;
+  font-weight: 600;
+  padding-bottom: 3%;
 }
-
-.pop-layer {
-  display: none;
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  width: 410px;
-  height: auto;
-  background-color: #fff;
-  border: 5px solid #3571B5;
-  z-index: 10;
+.modal-sub {
+    font-size: 13px;
+    text-align: center;
+    padding-bottom: 5%;
 }
-
-.dim-layer {
-  display: none;
-  position: fixed;
-  _position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  z-index: 100;
+/* The Close Button */
+.close {
+    color: #aaa;
+    width: 28px;
+    float: right;
+    font-size: 28px;
+    text-align: center;
+    font-weight: bold;
 }
-
-.dim-layer .dimBg {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: #000;
-  opacity: .5;
-  filter: alpha(opacity=50);
-}
-
-.dim-layer .pop-layer {
-  display: block;
-}
-
-a.btn-layerClose {
-  display: inline-block;
-  height: 25px;
-  padding: 0 14px 0;
-  border: 1px solid #304a8a;
-  background-color: #3f5a9d;
-  font-size: 13px;
-  color: #fff;
-  line-height: 25px;
-}
-
-a.btn-layerClose:hover {
-  border: 1px solid #091940;
-  background-color: #1f326a;
-  color: #fff;
+.close:hover,
+.close:focus {
+    color: black;
+    text-decoration: none;
+    cursor: pointer;
 }

@@ -1,70 +1,39 @@
-/* QR Code에 담을 랜덤한 수 및 QR Code 생성 */
-var rand = "";
-for (var i = 0; i < 5; i++) {
-    rand += (Math.floor((Math.random() * 10)));
+/* 임시로 random number 생성하는 함수 */
+var generateRandom = function (min, max) {
+    var ranNum = Math.floor(Math.random() * (max - min + 1)) + min;
+    return ranNum;
 }
 
+/* QR Code 생성 -> text(랜덤값) 서버에서 생성해서 가지고 오기 */
 var qrcode = new QRCode(document.getElementById("qrcode"), {
-    text: rand,
-    width: 128,
-    height: 128,
+    width: 150,
+    height: 150,
     colorDark: "#000000",
     colorLight: "#ffffff",
     correctLevel: QRCode.CorrectLevel.H
 });
 
-document.qr_form.qr_num.value = rand;
+/* Modal Popup */
+var modal = document.getElementById('myModal');
+var btn = document.getElementById('myBtn');
+var span = document.getElementsByClassName("close")[0];                                          
 
-$("#qrcode > img").css({"margin": "auto"});
-
-/* Popup Layer */
-$('.btn-example').click(function () {
-    var $href = $(this).attr('href');
-    layer_popup($href);
-});
-
-function layer_popup(el) {
-
-    var $el = $(el); //레이어의 id를 $el 변수에 저장
-    var isDim = $el.prev().hasClass('dimBg'); //dimmed 레이어를 감지하기 위한 boolean 변수
-
-    isDim ? $('.dim-layer').fadeIn() : $el.fadeIn();
-
-    var $elWidth = ~~($el.outerWidth()),
-        $elHeight = ~~($el.outerHeight()),
-        docWidth = $(document).width(),
-        docHeight = $(document).height();
-
-    // 화면의 중앙에 레이어를 띄운다.
-    if ($elHeight < docHeight || $elWidth < docWidth) {
-        $el.css({
-            marginTop: -$elHeight / 2,
-            marginLeft: -$elWidth / 2
-        })
-    } else {
-        $el.css({
-            top: 0,
-            left: 0
-        });
+btn.onclick = function() {
+    modal.style.display = "block";
+    var randNum = generateRandom(0, 100);
+    qrcode.makeCode(randNum);
+    document.getElementById('hiddenNum').setAttribute('value', randNum);
+}
+span.onclick = function() {
+    modal.style.display = "none";
+    qrcode.clear();
+    document.getElementById('hiddenNum').removeAttribute('value');
+}
+// When the user clicks anywhere outside of the modal, close it
+window.onclick = function(event) {
+    if (event.target == modal) {
+        modal.style.display = "none";
     }
-
-    $el.find('a.btn-layerClose').click(function () {
-        isDim ? $('.dim-layer').fadeOut() : $el.fadeOut(); // 닫기 버튼을 클릭하면 레이어가 닫힌다.
-        return false;
-    });
-
-    $('.layer .dimBg').click(function () {
-        $('.dim-layer').fadeOut();
-        return false;
-    });
-
 }
 
-$('#qrform').on('submit', function(e){
-    $.post('/qr', {
-        qrNum: rand
-    });
-    $chatmsg.val("");
-    $chatmsg.focus();
-    return false;
-});
+$("#qrcode > img").css({"margin": "5% auto"});
