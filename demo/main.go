@@ -9,14 +9,17 @@ import (
 )
 
 func postQRHandler(w http.ResponseWriter, r *http.Request) {
-	qrcodeNumber := r.FormValue("qrnum")
-	fmt.Fprintf(w, "qrcode: %s\n", qrcodeNumber)
+	qrNum := r.FormValue("qr_num")
+	fmt.Println("POST " + qrNum) //qr_num
+
+	http.ServeFile(w, r, "public/mobile.html")
+	//http.Redirect(w, r, "/mobile.html", http.StatusMovedPermanently) //Get, 301
+	//http.Redirect(w, r, "/mobile.html", http.StatusTemporaryRedirect) //Post, 307
 }
 
 func main() {
 	mux := pat.New()
-	mux.Post("/qrcode", postQRHandler)
-	//mux.Get("/success", getQRHandler)
+	mux.Post("/mobile", postQRHandler)
 
 	n := negroni.Classic()
 	n.UseHandler(mux)

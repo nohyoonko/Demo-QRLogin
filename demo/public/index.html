@@ -30,8 +30,8 @@
                     <h2 class="modal-name">QR Code</h2>
                     <p class="modal-sub">QR코드를 모바일에서 스캔 후 인증을 진행해주세요.</p>
                     <div id="qrcode"></div>
-                    <form action="./qrcode" id="qr_form" method="POST">
-                        <!--<input type="hidden" name="qr_num" value="">-->
+                    <form action="./mobile" id="qr_form" method="POST">
+                        <input type="hidden" id="hiddenNum" name="qr_num">
                         <button type="submit" class="qr_login">확인</button>
                     </form>
                 </div>
@@ -41,6 +41,7 @@
         <!-- // Login Area -->
     </div>
 </body>
+</script>
 <script src="js/qrlogin.js"></script>
 
 </html>
