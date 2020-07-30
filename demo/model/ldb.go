@@ -1,17 +1,18 @@
 package model
 
 import (
-	"fmt"
+	"errors"
+	"log"
 
 	"github.com/syndtr/goleveldb/leveldb"
 	"github.com/syndtr/goleveldb/leveldb/util"
 )
 
 type DBHandler interface {
-	Create(key string, value string) error //key 중복->err
+	Create(key string, value string) error
 	SelectAll() ([]data, error)
 	SelectOne(key string) (data, error)
-	Upadte(key string, value string) error
+	Update(key string, value string) error
 	Delete(key string) error
 	SelectList(prefix string) ([]data, error)
 	Close() error
@@ -34,19 +35,34 @@ func newLDBHandler(filepath string) DBHandler {
 	dbPath := "dbPath"
 	database, err := leveldb.OpenFile(dbPath, nil)
 	if err != nil {
-		panic(err)
+		log.Println(err.Error())
+		return nil
 	}
 	return &ldbHandler{db: database} //return err
 }
 
-// byte slice -> string
+//byte slice -> string
 func decode(b []byte) string {
 	return string(b[:len(b)])
 }
 
 func (l *ldbHandler) Create(key string, value string) error {
+	//search every data in db
+	iter := l.db.NewIterator(nil, nil)
+	for iter.Next() {
+		//key is duplicated
+		if key == string(iter.Key()) {
+			return errors.New("key is duplicated")
+		}
+	}
+	iter.Release()
+	err := iter.Error()
+	if err != nil {
+		return err
+	}
+
 	//put data
-	err := l.db.Put([]byte(key), []byte(value), nil)
+	err = l.db.Put([]byte(key), []byte(value), nil)
 	if err != nil {
 		return err
 	}
@@ -59,11 +75,10 @@ func (l *ldbHandler) SelectAll() ([]data, error) {
 	//search every data in db
 	iter := l.db.NewIterator(nil, nil)
 	for iter.Next() {
-		var d data
-		d.key = string(iter.Key())
-		d.value = string(iter.Value())
-		datas = append(datas, d)
-		fmt.Println("read", d.key, d.value) //key, value
+		var getData data
+		getData.key = string(iter.Key())
+		getData.value = string(iter.Value())
+		datas = append(datas, getData)
 	}
 	iter.Release()
 	err := iter.Error()
@@ -76,17 +91,17 @@ func (l *ldbHandler) SelectAll() ([]data, error) {
 func (l *ldbHandler) SelectOne(key string) (data, error) {
 	value, err := l.db.Get([]byte(key), nil)
 
-	var d data
-	d.key = key
-	d.value = string(value)
+	var getData data
+	getData.key = key
+	getData.value = string(value)
 
 	if err != nil {
-		return d, err
+		return getData, err
 	}
-	return d, nil
+	return getData, nil
 }
 
-func (l *ldbHandler) Upadte(key string, value string) error {
+func (l *ldbHandler) Update(key string, value string) error {
 	//put만 해도 overwrite 되지만, .ldb에 남아있는 듯 하여 delete->put
 	//batch로 쓰는게 더 빠르다고 해서 batch 사용
 	batch := new(leveldb.Batch)
@@ -103,13 +118,12 @@ func (l *ldbHandler) SelectList(prefix string) ([]data, error) {
 	selectDatas := []data{}
 
 	//prefix
-	iter := l.db.NewIterator(util.BytesPrefix([]byte("new")), nil)
+	iter := l.db.NewIterator(util.BytesPrefix([]byte(prefix)), nil)
 	for iter.Next() {
 		var d data
 		d.key = string(iter.Key())
 		d.value = string(iter.Value())
 		selectDatas = append(selectDatas, d)
-		fmt.Println("select", d.key, d.value) //key, value
 	}
 	iter.Release()
 	err := iter.Error()
