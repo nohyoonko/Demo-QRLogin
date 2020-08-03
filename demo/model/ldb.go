@@ -41,11 +41,6 @@ func newLDBHandler(filepath string) DBHandler {
 	return &ldbHandler{db: database} //return err
 }
 
-//byte slice -> string
-func decode(b []byte) string {
-	return string(b[:len(b)])
-}
-
 func (l *ldbHandler) Create(key string, value string) error {
 	//search every data in db
 	iter := l.db.NewIterator(nil, nil)

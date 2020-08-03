@@ -1,41 +1,51 @@
 package main
 
 import (
-	"fmt"
-	"html/template"
+	"crypto/rand"
 	"log"
 	"net/http"
 
-	"github.com/gorilla/pat"
-	"github.com/urfave/negroni"
+	"github.com/gin-gonic/gin"
 )
 
-type QR struct {
-	Num string
+func generateRandomBytes(n int) ([]byte, error) {
+	b := make([]byte, n)
+	_, err := rand.Read(b)
+	//err == nil only if we read len(b) bytes.
+	if err != nil {
+		return nil, err
+	}
+	return b, nil
 }
 
-func postQRHandler(w http.ResponseWriter, r *http.Request) {
-	tmp, err := template.ParseFiles("public/mobile.html")
+func generateRandomNumber(n int) (string, error) {
+	const numbers = "0123456789"
+	bytes, err := generateRandomBytes(n)
 	if err != nil {
-		log.Fatalln(err)
+		return "", err
 	}
-
-	qrNum := r.FormValue("qr_num")
-	fmt.Println("POST " + qrNum) //qr_num
-
-	tmp.Execute(w, QR{qrNum})
-
-	//http.ServeFile(w, r, "public/mobile.html")
-	//http.Redirect(w, r, "/mobile.html", http.StatusMovedPermanently) //Get, 301
-	//http.Redirect(w, r, "/mobile.html", http.StatusTemporaryRedirect) //Post, 307
+	for i, b := range bytes {
+		bytes[i] = numbers[b%byte(len(numbers))]
+	}
+	return string(bytes), nil
 }
 
 func main() {
-	mux := pat.New()
-	mux.Post("/mobile", postQRHandler)
-
-	n := negroni.Classic()
-	n.UseHandler(mux)
-
-	http.ListenAndServe(":3000", n)
+	r := gin.Default()
+	r.Static("/js", "./js")
+	r.Static("/css", "./css")
+	r.LoadHTMLGlob("templates/*")
+	r.GET("/", func(c *gin.Context) {
+		c.HTML(http.StatusOK, "index.html", gin.H{})
+	})
+	r.POST("/create", func(c *gin.Context) {
+		randNum, err := generateRandomNumber(7)
+		if err != nil {
+			log.Println(err.Error())
+		}
+		c.JSON(http.StatusOK, gin.H{
+			"randNum": randNum,
+		})
+	})
+	r.Run()
 }
