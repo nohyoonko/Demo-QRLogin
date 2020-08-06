@@ -3,6 +3,7 @@ package model
 import (
 	"errors"
 	"log"
+	"os"
 
 	"github.com/syndtr/goleveldb/leveldb"
 	"github.com/syndtr/goleveldb/leveldb/util"
@@ -33,6 +34,14 @@ func NewDBHandler(filepath string) DBHandler {
 }
 
 func newLDBHandler(filepath string) DBHandler {
+	//if filepath already exists, delete all files in the filepath
+	if _, err := os.Stat(filepath); !os.IsNotExist(err) {
+		err := os.RemoveAll(filepath)
+		if err != nil {
+			log.Println(err.Error())
+		}
+	}
+
 	dbPath := filepath
 	database, err := leveldb.OpenFile(dbPath, nil)
 	if err != nil {
