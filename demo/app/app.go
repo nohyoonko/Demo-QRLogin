@@ -19,6 +19,10 @@ type Verify struct {
 	Credential   string `json:"credential" binding:"required"`
 }
 
+type QRCode struct {
+	QRNumber string `json:"randNum" binding:"required"`
+}
+
 func generateRandomBytes(n int) ([]byte, error) {
 	b := make([]byte, n)
 	_, err := rand.Read(b)
@@ -66,6 +70,7 @@ func (a *AppHandler) createQRHandler(c *gin.Context) {
 			break
 		}
 	}
+	log.Println("Create Random Number for QR Code")
 }
 
 func (a *AppHandler) verifyHandler(c *gin.Context) {
@@ -76,30 +81,35 @@ func (a *AppHandler) verifyHandler(c *gin.Context) {
 	}
 	//verify credential -> only "test" is ok
 	if v.Credential != "test" {
-		a.db.Update(v.RandomNumber, "fail")
-		c.JSON(http.StatusUnauthorized, gin.H{"status": "fail"})
+		err := a.db.Update(v.RandomNumber, "fail")
+		if err != nil {
+			log.Println(err.Error())
+		}
+		c.JSON(http.StatusUnauthorized, gin.H{"verify": "fail"})
+		log.Println("Verification Fail")
 	} else {
-		a.db.Update(v.RandomNumber, "success")
-		c.JSON(http.StatusOK, gin.H{"status": "success"})
+		err := a.db.Update(v.RandomNumber, "success")
+		if err != nil {
+			log.Println(err.Error())
+		}
+		c.JSON(http.StatusOK, gin.H{"verify": "success"})
+		log.Println("Verification Success")
 	}
 }
 
-type QRNum struct {
-	QRNumber string `json:"randNum" binding:"required"`
-}
-
 func (a *AppHandler) checkHandler(c *gin.Context) {
-	var qr QRNum
+	var qr QRCode
 	if err := c.ShouldBindJSON(&qr); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 	}
 
 	//read QRNumber's status
-	list, err := a.db.SelectOne(qr.QRNumber)
+	data, err := a.db.SelectOne(qr.QRNumber)
 	if err != nil {
 		log.Println(err.Error())
 	}
-	c.JSON(http.StatusOK, gin.H{"QRstatus": list.Value}) //key(randNum), value(status)
+	c.JSON(http.StatusOK, gin.H{"QRstatus": data.Value}) //key(randNum), value(status)
+	log.Println("Check Random Number's Status")
 	err = a.db.Delete(qr.QRNumber)
 	if err != nil {
 		log.Println(err.Error())
