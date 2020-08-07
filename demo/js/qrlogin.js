@@ -26,6 +26,16 @@ createBtn.onclick = function () {
 /* QR Code 삭제 */
 var cancelBtn = document.getElementById("qrCancel");
 cancelBtn.onclick = function () {
+    var jsonData = {
+        "randNum": qrNum
+    }
+    $.ajax({
+        type: "DELETE",
+        url: "/create",
+        data: JSON.stringify(jsonData),
+        contentType: 'application/json; charset=utf-8'
+    });
+
     var qrBox = document.getElementById("qrBox");
     qrBox.style.display = 'none';
     createBtn.style.display = 'block';
