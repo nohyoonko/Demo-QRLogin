@@ -73,6 +73,21 @@ func (a *AppHandler) createQRHandler(c *gin.Context) {
 	log.Println("Create Random Number for QR Code")
 }
 
+func (a *AppHandler) deleteQRHandler(c *gin.Context) {
+	var q QRCode
+	if err := c.ShouldBindJSON(&q); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	err := a.db.Delete(q.QRNumber)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"delete": "fail"})
+		log.Println(err.Error())
+	}
+	c.JSON(http.StatusOK, gin.H{"delete": "success"})
+	log.Println("Delete Random Number for QR Code")
+}
+
 func (a *AppHandler) verifyHandler(c *gin.Context) {
 	var v Verify
 	if err := c.ShouldBindJSON(&v); err != nil {
@@ -133,6 +148,7 @@ func MakeHandler(filepath string) *AppHandler {
 
 	r.GET("/", a.homeHandler)
 	r.POST("/create", a.createQRHandler)
+	r.DELETE("/create", a.deleteQRHandler)
 	r.POST("/mobile", a.verifyHandler)
 	r.POST("/check", a.checkHandler)
 	r.GET("/success", a.successHandler)
