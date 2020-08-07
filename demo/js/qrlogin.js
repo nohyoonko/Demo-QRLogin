@@ -7,6 +7,7 @@ var qrcode = new QRCode(qrDiv, {
     colorLight: "#ffffff",
     correctLevel: QRCode.CorrectLevel.H
 });
+var verify = ""; //인증 여부를 확인하는 변수
 
 /* QR Code 생성 */
 var qrNum;
@@ -29,51 +30,65 @@ cancelBtn.onclick = function () {
     qrBox.style.display = 'none';
     createBtn.style.display = 'block';
     qrcode.clear();
-    //취소할 때 생성한 random number 삭제 필요
 }
 
 /* Mobile 역할을 하는 prompt */
 qrDiv.onclick = function () {
-    var cred = prompt(qrNum+"의 credential을 입력하세요.");
+    var cred = prompt(qrNum + "의 credential을 입력하세요."); //취소하면 null 반환
     var mobileData = {
         "randNum": qrNum,
         "credential": cred
     }
-    $.ajax({
-        type: "POST",
-        url: "/mobile",
-        data: JSON.stringify(mobileData),
-        contentType: 'application/json; charset=utf-8',
-        success: function () {
-            alert("Success!");
-        },
-        error: function () {
-            alert("Error!");
-        }
-    });
+    verify = "";
+
+    if (cred != null) {
+        $.ajax({
+            type: "POST",
+            url: "/mobile",
+            data: JSON.stringify(mobileData), //jsonObj -> jsonStr
+            contentType: 'application/json; charset=utf-8',
+            success: function (response) {
+                verify = response.verify;
+                if (verify == "success") {
+                    alert("인증에 성공하였습니다!");
+                }
+            },
+            error: function (response, status, error) {
+                if (response.status == "401") { //http.StatusUnauthorized
+                    alert("인증에 실패하였습니다!");
+                    var json = JSON.parse(response.responseText); //jsonStr -> jsonObj
+                    verify = json.verify;
+                } else {
+                    alert(error);
+                }
+            }
+        });
+    }
 }
 
 /* QR Code 확인(success or fail) */
 var checkBtn = document.getElementById("qrCheck");
 checkBtn.onclick = function () {
-    var jsonData = {
-        "randNum": qrNum
-    }
-    $.ajax({
-        type: "POST",
-        url: "/check",
-        data: JSON.stringify(jsonData),
-        contentType: 'application/json; charset=utf-8',
-        success: function (response) {
-            if(response.QRstatus == "success"){
-                window.location.href="/success"
-            }
-            else { //fail
-                window.location.href="/"
-            }
-        },
-        error: function (error) {
-            alert("Error!"+error);
+    //인증 과정을 거친 후에만 동작하도록
+    if (verify != "") {
+        var jsonData = {
+            "randNum": qrNum
         }
-    });
+        $.ajax({
+            type: "POST",
+            url: "/check",
+            data: JSON.stringify(jsonData),
+            contentType: 'application/json; charset=utf-8',
+            success: function (response) {
+                if (response.QRstatus == "success") {
+                    window.location.href = "/success"
+                } else if (response.QRstatus == "fail") {
+                    window.location.href = "/"
+                }
+            },
+            error: function (error) {
+                alert("Error!" + error);
+            }
+        });
+    }
 }
