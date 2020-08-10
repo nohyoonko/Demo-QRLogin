@@ -3,6 +3,7 @@ package model
 import (
 	"errors"
 	"log"
+	"os"
 
 	"github.com/syndtr/goleveldb/leveldb"
 	"github.com/syndtr/goleveldb/leveldb/util"
@@ -10,11 +11,11 @@ import (
 
 type DBHandler interface {
 	Create(key string, value string) error
-	SelectAll() ([]data, error)
-	SelectOne(key string) (data, error)
 	Update(key string, value string) error
+	SelectOne(key string) (Data, error)
+	SelectAll() ([]Data, error)
+	SelectList(prefix string) ([]Data, error)
 	Delete(key string) error
-	SelectList(prefix string) ([]data, error)
 	Close() error
 }
 
@@ -22,9 +23,10 @@ type ldbHandler struct {
 	db *leveldb.DB
 }
 
-type data struct {
-	key   string `json:"key"`
-	value string `json:"value"`
+//외부 참조 가능하려면 first character is capital
+type Data struct {
+	Key   string `json:"key"`
+	Value string `json:"value"`
 }
 
 func NewDBHandler(filepath string) DBHandler {
@@ -32,13 +34,21 @@ func NewDBHandler(filepath string) DBHandler {
 }
 
 func newLDBHandler(filepath string) DBHandler {
-	dbPath := "dbPath"
+	//if filepath already exists, delete all files in the filepath
+	if _, err := os.Stat(filepath); !os.IsNotExist(err) {
+		err := os.RemoveAll(filepath)
+		if err != nil {
+			log.Println(err.Error())
+		}
+	}
+
+	dbPath := filepath
 	database, err := leveldb.OpenFile(dbPath, nil)
 	if err != nil {
 		log.Println(err.Error())
 		return nil
 	}
-	return &ldbHandler{db: database} //return err
+	return &ldbHandler{db: database}
 }
 
 func (l *ldbHandler) Create(key string, value string) error {
@@ -64,38 +74,6 @@ func (l *ldbHandler) Create(key string, value string) error {
 	return nil
 }
 
-func (l *ldbHandler) SelectAll() ([]data, error) {
-	datas := []data{}
-
-	//search every data in db
-	iter := l.db.NewIterator(nil, nil)
-	for iter.Next() {
-		var getData data
-		getData.key = string(iter.Key())
-		getData.value = string(iter.Value())
-		datas = append(datas, getData)
-	}
-	iter.Release()
-	err := iter.Error()
-	if err != nil {
-		return datas, err
-	}
-	return datas, nil
-}
-
-func (l *ldbHandler) SelectOne(key string) (data, error) {
-	value, err := l.db.Get([]byte(key), nil)
-
-	var getData data
-	getData.key = key
-	getData.value = string(value)
-
-	if err != nil {
-		return getData, err
-	}
-	return getData, nil
-}
-
 func (l *ldbHandler) Update(key string, value string) error {
 	//put만 해도 overwrite 되지만, .ldb에 남아있는 듯 하여 delete->put
 	//batch로 쓰는게 더 빠르다고 해서 batch 사용
@@ -109,16 +87,48 @@ func (l *ldbHandler) Update(key string, value string) error {
 	return nil
 }
 
-func (l *ldbHandler) SelectList(prefix string) ([]data, error) {
-	selectDatas := []data{}
+func (l *ldbHandler) SelectOne(key string) (Data, error) {
+	value, err := l.db.Get([]byte(key), nil)
+
+	var getData Data
+	getData.Key = key
+	getData.Value = string(value)
+
+	if err != nil {
+		return getData, err
+	}
+	return getData, nil
+}
+
+func (l *ldbHandler) SelectAll() ([]Data, error) {
+	datas := []Data{}
+
+	//search every data in db
+	iter := l.db.NewIterator(nil, nil)
+	for iter.Next() {
+		var getData Data
+		getData.Key = string(iter.Key())
+		getData.Value = string(iter.Value())
+		datas = append(datas, getData)
+	}
+	iter.Release()
+	err := iter.Error()
+	if err != nil {
+		return datas, err
+	}
+	return datas, nil
+}
+
+func (l *ldbHandler) SelectList(prefix string) ([]Data, error) {
+	selectDatas := []Data{}
 
 	//prefix
 	iter := l.db.NewIterator(util.BytesPrefix([]byte(prefix)), nil)
 	for iter.Next() {
-		var d data
-		d.key = string(iter.Key())
-		d.value = string(iter.Value())
-		selectDatas = append(selectDatas, d)
+		var tmp Data
+		tmp.Key = string(iter.Key())
+		tmp.Value = string(iter.Value())
+		selectDatas = append(selectDatas, tmp)
 	}
 	iter.Release()
 	err := iter.Error()

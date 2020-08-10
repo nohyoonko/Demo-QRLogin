@@ -136,7 +136,8 @@ body{min-width:1280px;min-height:780px}
 
 /* 메인 > 로그인 */
 #wrap.login{position:absolute;;z-index:20;top:0;right:0;bottom:0;left:0;min-width:1280px;min-height:600px;background:#4683b9}
-.login_area{position:absolute;top:50%;left:50%;width:682px;height:auto;margin-top:-258px;margin-left:-341px}
+/* 데모 >> top:50%;margin-top:-258px; 삭제*/
+.login_area{position:absolute;top:10%;left:50%;width:682px;height:auto;margin-left:-341px}
 .login_area .logo{line-height:0;text-align:center; color: white; font-weight: 300; font-size: 70px; line-height: normal; }
 .login_area .logo .sp{width:431px;height:59px;background-position:0 -39px}
 .login_area .logo .strong{font-weight: 700; font-size: 0.94em; }
@@ -569,6 +570,7 @@ body.safari .table_control .btn_move.left.on .sp{vertical-align:middle}
     padding: 8px;
     line-height: 150px;
     border: 5px solid #1261a4;
+    cursor: pointer;
 }
 .qrlogin button{
     width:40%;
