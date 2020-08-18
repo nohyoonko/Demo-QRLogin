@@ -589,3 +589,12 @@ body.safari .table_control .btn_move.left.on .sp{vertical-align:middle}
     font-size: 15pt;
     margin-top: 15px;
 }
+
+.center {
+    margin: 0; 
+    position: absolute; 
+    top: 50%; 
+    left: 50%; 
+    transform: translate(-50%, -50%); 
+    text-align: center;
+}
