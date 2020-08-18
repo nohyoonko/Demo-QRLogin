@@ -135,7 +135,7 @@ func (a *AppHandler) successHandler(c *gin.Context) {
 	c.HTML(http.StatusOK, "success.html", gin.H{})
 }
 
-func MakeHandler(filepath string, env bool) *AppHandler {
+func MakeHandler(filepath string) *AppHandler {
 	r := gin.Default()
 	r.Static("/js", "./js")
 	r.Static("/css", "./css")
@@ -143,7 +143,7 @@ func MakeHandler(filepath string, env bool) *AppHandler {
 
 	a := &AppHandler{
 		gin: r,
-		db:  model.NewDBHandler(filepath, env), //DB open
+		db:  model.NewDBHandler(filepath), //DB open
 	}
 
 	r.GET("/", a.homeHandler)

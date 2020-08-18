@@ -29,19 +29,16 @@ type Data struct {
 	Value string `json:"value"`
 }
 
-func NewDBHandler(filepath string, env bool) DBHandler {
-	return newLDBHandler(filepath, env)
+func NewDBHandler(filepath string) DBHandler {
+	return newLDBHandler(filepath)
 }
 
-func newLDBHandler(filepath string, env bool) DBHandler {
-	//if env == true, available to delete file
-	if env {
-		//if filepath already exists, delete all files in the filepath
-		if _, err := os.Stat(filepath); !os.IsNotExist(err) {
-			err := os.RemoveAll(filepath)
-			if err != nil {
-				log.Println(err.Error())
-			}
+func newLDBHandler(filepath string) DBHandler {
+	//if filepath already exists, delete all files in the filepath
+	if _, err := os.Stat(filepath); !os.IsNotExist(err) {
+		err := os.RemoveAll(filepath)
+		if err != nil {
+			log.Println(err.Error())
 		}
 	}
 
