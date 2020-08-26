@@ -9,7 +9,18 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-type AppHandler struct {
+type QRHandler interface {
+	homeHandler(c *gin.Context)     //메인 페이지 로드하기
+	createQRHandler(c *gin.Context) //QR 코드에 담겨지는 random number 생성하기
+	deleteQRHandler(c *gin.Context) //random number 삭제하기(메인 페이지에서 취소 버튼을 누르면 요청)
+	verifyHandler(c *gin.Context)   //random number와 credential을 받아서 유효한지 확인하기
+	checkHandler(c *gin.Context)    //random number에 대한 유효성 검사한 결과 확인하기
+	successHandler(c *gin.Context)  //성공 페이지 로드하기
+	Run()
+	Close()
+}
+
+type appHandler struct {
 	gin *gin.Engine
 	db  model.DBHandler
 }
@@ -23,6 +34,32 @@ type QRCode struct {
 	QRNumber string `json:"randNum" binding:"required"`
 }
 
+func NewQRHandler(filepath string, env bool) QRHandler {
+	return newAppHandler(filepath, env)
+}
+
+func newAppHandler(filepath string, env bool) QRHandler {
+	r := gin.Default()
+	r.Static("/js", "./js")
+	r.Static("/css", "./css")
+	r.LoadHTMLGlob("templates/*")
+
+	a := &appHandler{
+		gin: r,
+		db:  model.NewDBHandler(filepath, env), //DB open
+	}
+
+	r.GET("/", a.homeHandler)
+	r.POST("/create", a.createQRHandler)
+	r.DELETE("/create", a.deleteQRHandler)
+	r.POST("/mobile", a.verifyHandler)
+	r.POST("/check", a.checkHandler)
+	r.GET("/success", a.successHandler)
+
+	return a
+}
+
+/* Generate Random Number (length: 7) */
 func generateRandomBytes(n int) ([]byte, error) {
 	b := make([]byte, n)
 	_, err := rand.Read(b)
@@ -45,19 +82,19 @@ func generateRandomNumber(n int) (string, error) {
 	return string(bytes), nil
 }
 
-func (a *AppHandler) Run() {
+func (a *appHandler) Run() {
 	a.gin.Run()
 }
 
-func (a *AppHandler) Close() {
+func (a *appHandler) Close() {
 	a.db.Close()
 }
 
-func (a *AppHandler) homeHandler(c *gin.Context) {
+func (a *appHandler) homeHandler(c *gin.Context) {
 	c.HTML(http.StatusOK, "index.html", gin.H{})
 }
 
-func (a *AppHandler) createQRHandler(c *gin.Context) {
+func (a *appHandler) createQRHandler(c *gin.Context) {
 	for {
 		randNum, err := generateRandomNumber(7)
 		if err != nil {
@@ -73,7 +110,7 @@ func (a *AppHandler) createQRHandler(c *gin.Context) {
 	log.Println("Create Random Number for QR Code")
 }
 
-func (a *AppHandler) deleteQRHandler(c *gin.Context) {
+func (a *appHandler) deleteQRHandler(c *gin.Context) {
 	var q QRCode
 	if err := c.ShouldBindJSON(&q); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
@@ -88,10 +125,12 @@ func (a *AppHandler) deleteQRHandler(c *gin.Context) {
 	log.Println("Delete Random Number for QR Code")
 }
 
-func (a *AppHandler) verifyHandler(c *gin.Context) {
+func (a *appHandler) verifyHandler(c *gin.Context) {
 	var v Verify
 	if err := c.ShouldBindJSON(&v); err != nil {
+		//if credential is empty string, response error
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		log.Println("Credential is empty string")
 		return
 	}
 	//verify credential -> only "test" is ok
@@ -112,7 +151,7 @@ func (a *AppHandler) verifyHandler(c *gin.Context) {
 	}
 }
 
-func (a *AppHandler) checkHandler(c *gin.Context) {
+func (a *appHandler) checkHandler(c *gin.Context) {
 	var qr QRCode
 	if err := c.ShouldBindJSON(&qr); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
@@ -131,27 +170,6 @@ func (a *AppHandler) checkHandler(c *gin.Context) {
 	}
 }
 
-func (a *AppHandler) successHandler(c *gin.Context) {
+func (a *appHandler) successHandler(c *gin.Context) {
 	c.HTML(http.StatusOK, "success.html", gin.H{})
-}
-
-func MakeHandler(filepath string) *AppHandler {
-	r := gin.Default()
-	r.Static("/js", "./js")
-	r.Static("/css", "./css")
-	r.LoadHTMLGlob("templates/*")
-
-	a := &AppHandler{
-		gin: r,
-		db:  model.NewDBHandler(filepath), //DB open
-	}
-
-	r.GET("/", a.homeHandler)
-	r.POST("/create", a.createQRHandler)
-	r.DELETE("/create", a.deleteQRHandler)
-	r.POST("/mobile", a.verifyHandler)
-	r.POST("/check", a.checkHandler)
-	r.GET("/success", a.successHandler)
-
-	return a
 }
